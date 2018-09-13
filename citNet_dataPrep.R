@@ -52,10 +52,6 @@ d <- get(load('doiYear.RData'))
 paperId_doi <- read.table('paperId_doi.txt', stringsAsFactors = FALSE) %>% 
   setNames(c('paperId', 'doi'))
 
-allAut <- B$id %>% unique() %>% sort() 
-allAut <- allAut + 1  #  BaraId + 1
-allAut <- data.frame(BaraId = allAut, tmp = 1, stringsAsFactors = FALSE)
-
 #  paper citations
 cit <- read.table('paper_cit.dat', stringsAsFactors = FALSE) #  read in citations for either original or null model output
 cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>% 
@@ -82,7 +78,7 @@ autcitNet <- cit %>% left_join(B, by = c('citing_doi' = 'doi')) %>%
 comm <- cluster_fast_greedy(autcitNet, merges = TRUE, modularity = TRUE,
                             membership = TRUE, weights = E(autcitNet)$weight)
 
-id_module = data.frame(id = node.id$id, 
+id_module = data.frame(id = as.integer(node.id$id) + 1, 
                        module = comm$membership, stringsAsFactors = FALSE) %>% 
   right_join(allAut, by = c('id' = 'BaraId')) %>% 
   select(id, module) %>% 
