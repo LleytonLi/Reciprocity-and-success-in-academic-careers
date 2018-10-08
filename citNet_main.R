@@ -77,73 +77,11 @@ save(aut_year, file = 'aut_year.RData')
 
 
 
-
-#  ===========  #
-#  Reciprocity  #
-#  ===========  #
-library(dplyr)
-library(igraph)
-library(Matrix)
-d <- get(load('doiYear.RData'))
-B <- get(load('Barabasi_cite.RData')) %>% select(id, doi)
-paperId_doi <- read.table('paperId_doi.txt', stringsAsFactors = FALSE) %>% 
-  setNames(c('paperId', 'doi'))
-aut <- get(load('aut_info.RData')) %>% mutate(lastYear = firstYear + careerLength - 1)
-ay <- get(load('aut_year.RData'))
-
-#  citations convert paperId to doi
-cit <- read.table('paper_cit.dat', stringsAsFactors = FALSE) #  read in citations for either original or null model output
-cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>% 
-  left_join(paperId_doi, by = c('citing_paperId' = 'paperId')) %>% 
-  left_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
-  select(doi.x, doi.y) %>% setNames(c('citing_doi', 'cited_doi'))
-
-#  compute annual reciprocity for each active author
-res <- NULL
-for(yr in 1978:2009){
-  print(yr)
-  
-  #  select authors still active this year
-  auths1 <- aut[aut$firstYear <= yr & aut$lastYear >= yr, 'BaraId'] 
-  d0 <- d[d$year <= yr, ]  
-  B0 <- B %>% filter(doi %in% d0$doi & id %in% auths1)
-  cit0 <- cit %>% filter(citing_doi %in% B0$doi & cited_doi %in% B0$doi)
-  
-  #  reorder author id
-  allnode <- sort(unique(B0$id))
-  node.id <- data.frame(id = allnode, igId = c(1: length(allnode)), stringsAsFactors = FALSE)
-  B0 <- B0 %>% left_join(node.id, by = 'id') %>% select(doi, igId)
-  
-  #  build author citation networks
-  autcit <- cit0 %>% left_join(B0, by = c('citing_doi' = 'doi')) %>% 
-    left_join(B0, by = c('cited_doi' = 'doi')) %>% select(igId.x, igId.y) %>% 
-    as.matrix()
-  
-  #  build author citation matrix
-  g1 <- autcit %>% graph.edgelist(directed = TRUE) %>% 
-    get.adjacency(sparse = TRUE) %>% Matrix(sparse = TRUE)
-  diag(g1) <- 0
-  srecp <- g1 + t(g1) - abs(g1 - t(g1))
-  s1 <- Matrix(srecp, sparse = TRUE) 
-  s1a <- rowSums(s1) / 2  # reciprocated weight
-  
-  g1in <- rowSums(t(g1)) # total weight cited by others
-  g1out <- rowSums(g1)  # total weight citing others
-  
-  #  reciprocity; note if g1in == 0 reciprocity will be NA
-  res <- res %>% rbind(data.frame(reciprocity = s1a / g1in, year = yr,
-                                  BaraId = node.id$id, stringsAsFactors = FALSE))
-  
-}
-save(res, file = 'reciprocity.RData')
-
-
-
 #  =========  #
 #  citations  #
 #  =========  #
 library(dplyr)
-yearBegin <- 1978
+yearBegin <- 1970
 aut = get(load('aut_info.RData'))
 lastYear = aut$careerLength + aut$firstYear - 1
 aut = data.frame(aut, lastYear, stringsAsFactors = FALSE)
@@ -157,7 +95,7 @@ pap_cited <- NULL
 cit0 <- NULL
 B0 <- NULL
 Res = NULL
-for(year in yearBegin:2017){
+for(year in yearBegin:2009){
   print(year)
   auths1 = aut[aut$firstYear <= year & aut$lastYear >= year, 'BaraId']
   d0 = d[d$year <= year, ]  
@@ -208,4 +146,66 @@ for(year in yearBegin:2017){
 }
 
 save(Res, file = 'citations.RData')
+
+
+
+#  ===========  #
+#  Reciprocity  #
+#  ===========  #
+library(dplyr)
+library(igraph)
+library(Matrix)
+d <- get(load('doiYear.RData'))
+B <- get(load('Barabasi_cite.RData')) %>% select(id, doi)
+paperId_doi <- read.table('paperId_doi.txt', stringsAsFactors = FALSE) %>% 
+  setNames(c('paperId', 'doi'))
+aut <- get(load('aut_info.RData')) %>% mutate(lastYear = firstYear + careerLength - 1)
+ay <- get(load('aut_year.RData'))
+
+#  citations convert paperId to doi
+cit <- read.table('paper_cit.dat', stringsAsFactors = FALSE) #  read in citations for either original or null model output
+cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>% 
+  left_join(paperId_doi, by = c('citing_paperId' = 'paperId')) %>% 
+  left_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
+  select(doi.x, doi.y) %>% setNames(c('citing_doi', 'cited_doi'))
+
+#  compute annual reciprocity for each active author
+res <- NULL
+for(yr in 1970:2009){
+  print(yr)
+  
+  #  select authors still active this year
+  auths1 <- aut[aut$firstYear <= yr & aut$lastYear >= yr, 'BaraId'] 
+  d0 <- d[d$year <= yr, ]  
+  B0 <- B %>% filter(doi %in% d0$doi & id %in% auths1)
+  cit0 <- cit %>% filter(citing_doi %in% B0$doi & cited_doi %in% B0$doi)
+  
+  #  reorder author id
+  allnode <- sort(unique(B0$id))
+  node.id <- data.frame(id = allnode, igId = c(1: length(allnode)), stringsAsFactors = FALSE)
+  B0 <- B0 %>% left_join(node.id, by = 'id') %>% select(doi, igId)
+  
+  #  build author citation networks
+  autcit <- cit0 %>% left_join(B0, by = c('citing_doi' = 'doi')) %>% 
+    left_join(B0, by = c('cited_doi' = 'doi')) %>% select(igId.x, igId.y) %>% 
+    as.matrix()
+  
+  #  build author citation matrix
+  g1 <- autcit %>% graph.edgelist(directed = TRUE) %>% 
+    get.adjacency(sparse = TRUE) %>% Matrix(sparse = TRUE)
+  diag(g1) <- 0
+  srecp <- g1 + t(g1) - abs(g1 - t(g1))
+  s1 <- Matrix(srecp, sparse = TRUE) 
+  s1a <- rowSums(s1) / 2  # reciprocated weight
+  
+  g1in <- rowSums(t(g1)) # total weight cited by others
+  g1out <- rowSums(g1)  # total weight citing others
+  
+  #  reciprocity; note if g1in == 0 reciprocity will be NA
+  res <- res %>% rbind(data.frame(reciprocity = s1a / g1in, year = yr,
+                                  BaraId = node.id$id, stringsAsFactors = FALSE))
+  
+}
+save(res, file = 'reciprocity.RData')
+
 
