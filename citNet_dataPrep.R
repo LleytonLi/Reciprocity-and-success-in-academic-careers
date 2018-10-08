@@ -2,16 +2,20 @@
 #  PREPARE DATA FOR NULL MODEL IN C++  #
 #  ##################################  #
 
-
 library(dplyr)
 d <- get(load('doiYear.RData'))
 B <- get(load('Barabasi_cite.RData'))
 cit <- read.csv('citationBara.csv', stringsAsFactors = FALSE)
 cit <- cit %>% arrange(cited_doi, citing_doi)
 
-cit <- cit %>% filter(cited_doi %in% B$doi & citing_doi %in% B$doi)
+#  clean data
 doiYear <- doiYear %>% filter(doiYear$doi %in% B$doi)
+doi <- intersect(B$doi, d$doi)
+
 d <- doiYear
+cit <- cit %>% filter(cited_doi %in% doi & citing_doi %in% doi)
+B <- B %>% filter(doi %in% doi)
+d <- d %>% filter(doi %in% doi)
 
 #  ===========================  #
 #  Prepare data for null model  #
