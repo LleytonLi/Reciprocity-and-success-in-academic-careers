@@ -169,7 +169,6 @@ cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>%
   left_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
   select(doi.x, doi.y) %>% setNames(c('citing_doi', 'cited_doi'))
 
-
 #  compute annual reciprocity for each active author
 res <- NULL
 for(yr in 1970:2009){
@@ -178,9 +177,8 @@ for(yr in 1970:2009){
   #  select authors still active this year; and paper doi
   auths1 <- aut[aut$firstYear <= yr & aut$lastYear >= yr, 'BaraId'] 
   d0 <- d[d$year <= yr, ]  
-  doi0 <- intersect(d0$doi, B$doi)
   doi_tmp <- unique(c(cit$citing_doi, cit$cited_doi))
-  doi0 <- intersect(doi0, doi_tmp)
+  doi0 <- d0$doi %>% intersect(B$doi) %>% intersect(doi_tmp)
   B0 <- B %>% filter(doi %in% doi0)
   cit0 <- cit %>% filter(citing_doi %in% doi0, cited_doi %in% doi0)
   
