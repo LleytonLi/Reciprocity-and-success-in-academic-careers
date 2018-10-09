@@ -204,7 +204,7 @@ for(yr in 1970:2009){
   g1out <- rowSums(g1)  # total weight citing others
   
   #  reciprocity; note if g1in == 0 reciprocity will be NA
-  res <- res %>% rbind(data.frame(reciprocity = s1a / g1in, year = yr,
+  res <- res %>% rbind(data.frame(recp = s1a, in_cite = g1in, year = yr,
                                   BaraId = node.id$id, stringsAsFactors = FALSE))
   
 }
