@@ -169,16 +169,20 @@ cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>%
   left_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
   select(doi.x, doi.y) %>% setNames(c('citing_doi', 'cited_doi'))
 
+
 #  compute annual reciprocity for each active author
 res <- NULL
 for(yr in 1970:2009){
   print(yr)
   
-  #  select authors still active this year
+  #  select authors still active this year; and paper doi
   auths1 <- aut[aut$firstYear <= yr & aut$lastYear >= yr, 'BaraId'] 
   d0 <- d[d$year <= yr, ]  
-  B0 <- B %>% filter(doi %in% d0$doi & id %in% auths1)
-  cit0 <- cit %>% filter(citing_doi %in% B0$doi & cited_doi %in% B0$doi)
+  doi0 <- intersect(d0$doi, B$doi)
+  doi_tmp <- unique(c(cit$citing_doi, cit$cited_doi))
+  doi0 <- intersect(doi0, doi_tmp)
+  B0 <- B %>% filter(doi %in% doi0)
+  cit0 <- cit %>% filter(citing_doi %in% doi0, cited_doi %in% doi0)
   
   #  reorder author id
   allnode <- sort(unique(B0$id))
@@ -206,6 +210,7 @@ for(yr in 1970:2009){
                                   BaraId = node.id$id, stringsAsFactors = FALSE))
   
 }
+
 save(res, file = 'reciprocity.RData')
 
 
