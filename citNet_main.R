@@ -148,6 +148,34 @@ for(year in yearBegin:2009){
 save(Res, file = 'citations.RData')
 
 
+#  =======================  #
+#  Author Citation Network  #
+#  =======================  #
+
+library(dplyr)
+yearBegin <- 1970
+aut = get(load('aut_info.RData')) %>% 
+  mutate(lastYear = careerLength + firstYear - 1)
+ay = get(load('aut_year.RData'))
+
+B = get(load('Barabasi_cite.RData')) %>% select(id, doi)
+d = get(load('doiYear.RData'))
+cit = read.csv('citationBara.csv', stringsAsFactors = FALSE)
+
+for(yr in yearBegin:2009){
+  print(yr)
+  auths1 <- aut[aut$firstYear <= yr & aut$lastYear >= yr, 'BaraId']
+  d0 <- d %>% filter(year <= yr)  
+  B0 <- B %>% filter(doi %in% d0$doi, id %in% auths1)  
+
+  cittmp <- cit %>% filter(citing_doi %in% B0$doi, cited_doi %in% B0$doi)
+  autcittmp <- cittmp %>% left_join(B0, by = c('citing_doi' = 'doi')) %>% 
+    left_join(B0, by = c('cited_doi' = 'doi')) %>% select(id.x, id.y) %>% 
+    setNames(c('citing_id', 'cited_id'))
+  write.csv(autcittmp, file = paste0(yr, '.csv'), row.names = FALSE)
+  
+}
+
 
 #  ===========  #
 #  Reciprocity  #
