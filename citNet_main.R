@@ -80,78 +80,40 @@ save(aut_year, file = 'aut_year.RData')
 #  =========  #
 #  citations  #
 #  =========  #
-library(dplyr)
-yearBegin <- 1970
-aut = get(load('aut_info.RData'))
-lastYear = aut$careerLength + aut$firstYear - 1
-aut = data.frame(aut, lastYear, stringsAsFactors = FALSE)
-ay = get(load('aut_year.RData'))
+#  Author - No. of citations - year
+load('Barabasi_cite.RData')
+load('doiYear.RData')
+cit <- read.csv('citationBara.csv', stringsAsFactors = FALSE)
 
-B = get(load('Barabasi_cite.RData'))
-d = get(load('doiYear.RData'))
-cit = read.csv('citationBara.csv', stringsAsFactors = FALSE)
+B0 <- Barabasi_cite %>% select(c('doi', 'id'))
+d0 <- doiYear %>% select(c('doi', 'year'))
+cit1 <- cit %>% full_join(d0, by = c('citing_doi' = 'doi')) %>% 
+  full_join(d0, by = c('cited_doi' = 'doi'))
+colnames(cit1) <- c("citing_doi", "cited_doi", "year_citing", "year_cited")
 
-pap_cited <- NULL 
-cit0 <- NULL
-B0 <- NULL
-Res = NULL
-for(year in yearBegin:2009){
-  print(year)
-  auths1 = aut[aut$firstYear <= year & aut$lastYear >= year, 'BaraId']
-  d0 = d[d$year <= year, ]  
-  B0 = B[B$doi %in% d0$doi, ]  
-  B0 = B0[B0$id %in% auths1, ] 
-  
-  cittmp = cit[cit$citing_doi %in% d0$doi & cit$cited_doi %in% B0$doi, ]
-  
-  t=table(cittmp[,2])
-  t1 =data.frame(t)
-  colnames(t1) = c('doi', 'freq')
-  
-  tmp1 = merge(B0, t1, by.x = 'doi', by.y = 'doi') 
-  tmp1 = tmp1[, c('id', 'freq')]  
-  #  h-index
-  tmp1 = tmp1[order(tmp1$id, tmp1$freq, decreasing = TRUE), ]
-  h_index <- function(x){
-    x = sort(x, decreasing = TRUE)
-    h = 0
-    for(i in 1:length(x)){
-      if(x[i] >= (h + 1)){
-        h = h + 1
-      }
-      else
-        break
-    }
-    return(h)
-  }
-  tmpb = aggregate(tmp1, by = list(tmp1$id), FUN = h_index)
-  h_tmp = tmpb[, c(1, 3)]
-  colnames(h_tmp) = c('BaraId', 'h_index')
-  h_idx = data.frame(BaraId = auths1, h_index = 0)  
-  h_idx = merge(h_idx, h_tmp, by.x = 'BaraId', by.y = 'BaraId', all.x = TRUE)
-  h_idx = h_idx[, c(1, 3)];  colnames(h_idx) = c('BaraId', 'h_index')
-  h_idx[is.na(h_idx$h_index), 'h_index'] <- 0
-  
-  tmp2 = aggregate(tmp1, by = list(tmp1$id), FUN = sum)  
-  tmp2 = tmp2[, c(1, 3)]
-  colnames(tmp2) = c('BaraId', 'pap_cits')
-  papcit = data.frame(BaraId = auths1, pap_cits = 0)  
-  papcit = merge(papcit, tmp2, by.x = 'BaraId', by.y = 'BaraId', all.x = TRUE)
-  papcit = papcit[, c(1, 3)];  colnames(papcit) = c('BaraId', 'pap_cits')
-  papcit[is.na(papcit$pap_cits), 'pap_cits'] <- 0
-  
-  tmpres = merge(h_idx, papcit, by.x = 'BaraId', by.y = 'BaraId')
-  tmpres = data.frame(tmpres, year = year)
-  Res = rbind(Res, tmpres)
+tmp1 <- d0 %>%  full_join(B0, by = 'doi') %>% 
+  group_by(id) %>% mutate(year = max(year)) %>% 
+  full_join(cit1, by = c('doi' = 'cited_doi')) %>% 
+  filter(!is.na(citing_doi), !is.na(doi))
+
+#  citaion - year
+citations <- NULL
+for(year in c(1978: 2017)){
+  citations_tmp <- tmp1 %>% select(id, year_citing) %>% group_by(id) %>% filter(year_citing <= year) %>% 
+    summarise(cits = n()) %>% select(id, cits) %>% mutate(year = year)
+  colnames(citations_tmp) <- c('BaraId', 'pap_cits', 'year')
+  citations <- rbind(citations, citations_tmp)
 }
 
-save(Res, file = 'citations.RData')
+citations <- data.frame(citations)
+save(citations, file = 'citations.RData')
+
 
 
 #  =======================  #
 #  Author Citation Network  #
 #  =======================  #
-
+#  citation network at author-author level
 library(dplyr)
 yearBegin <- 1970
 aut = get(load('aut_info.RData')) %>% 
