@@ -83,6 +83,7 @@ save(aut_year, file = 'aut_year.RData')
 #  =========  #
 #  Author - No. of citations - year
 library(dplyr)
+library(tidyr)
 load('Barabasi_cite.RData')
 load('doiYear.RData')
 cit <- read.csv('citationBara.csv', stringsAsFactors = FALSE)
