@@ -109,11 +109,11 @@ for(year in c(1978: 2017)){
 #  make sure every active author year there is data for No. of citations
 aut <- get(load('aut_info.RData')) %>% group_by(BaraId) %>% 
   mutate(lastYear = firstYear + careerLength - 1, year = toString(c(firstYear: lastYear))) %>% 
-  separate_rows(year) %>% select(c(BaraId, year))
+  separate_rows(year) %>% mutate(year = as.integer(year)) %>% select(c(BaraId, year))
 
 citations <- citations %>% right_join(aut, by = c('BaraId', 'year')) %>% 
   mutate(pap_cits=replace(pap_cits, is.na(pap_cits), 0))
-  
+ 
 citations <- data.frame(citations)
 save(citations, file = 'citations.RData')
 
