@@ -115,7 +115,7 @@ save(citations, file = 'citations.RData')
 #  =======================  #
 #  citation network at author-author level
 library(dplyr)
-yearBegin <- 1970
+yearBegin <- 1978
 aut = get(load('aut_info.RData')) %>% 
   mutate(lastYear = careerLength + firstYear - 1)
 ay = get(load('aut_year.RData'))
@@ -161,7 +161,7 @@ cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>%
 
 #  compute annual reciprocity for each active author
 res <- NULL
-for(yr in 1970:2009){
+for(yr in 1978:2017){
   print(yr)
   
   #  select authors still active this year; and paper doi
