@@ -115,10 +115,9 @@ aut <- get(load('aut_info.RData')) %>% group_by(BaraId) %>%
 
 citations <- citations %>% right_join(aut, by = c('BaraId', 'year')) %>% 
   mutate(pap_cits=replace(pap_cits, is.na(pap_cits), 0))
- 
+  
 citations <- data.frame(citations)
 save(citations, file = 'citations.RData')
-
 
 
 
