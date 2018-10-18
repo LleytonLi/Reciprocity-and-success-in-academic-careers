@@ -9,6 +9,7 @@
 #  =========================================  #
 #  detailed information of authors including:
 #  BaraId, careerLength, firstYear, max publication interval, num of publications
+library(dplyr)
 B <- get(load('Barabasi_cite.RData'))
 d <- get(load('doiYear.RData'))
 s <- merge(B, d, by.x = 'doi', by.y = 'doi', all.x = TRUE)
@@ -81,7 +82,7 @@ save(aut_year, file = 'aut_year.RData')
 #  citations  #
 #  =========  #
 #  Author - No. of citations - year
-
+library(dplyr)
 load('Barabasi_cite.RData')
 load('doiYear.RData')
 cit <- read.csv('citationBara.csv', stringsAsFactors = FALSE)
@@ -134,7 +135,7 @@ B = get(load('Barabasi_cite.RData')) %>% select(id, doi)
 d = get(load('doiYear.RData'))
 cit = read.csv('citationBara.csv', stringsAsFactors = FALSE)
 
-for(yr in yearBegin:2009){
+for(yr in yearBegin:2017){
   print(yr)
   auths1 <- aut[aut$firstYear <= yr & aut$lastYear >= yr, 'BaraId']
   d0 <- d %>% filter(year <= yr)  
