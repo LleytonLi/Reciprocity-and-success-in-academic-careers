@@ -199,13 +199,13 @@ for(yr in 1978:2017){
   s1 <- Matrix(srecp, sparse = TRUE) 
   recp <- rowSums(s1) / 2  # reciprocated weight
   
-  g1in <- rowSums(t(g1)) # total weight cited by others
-  g1out <- rowSums(g1)  # total weight citing others
+  in_cite  <- rowSums(t(g1)) # total weight cited by others
+  out_cite <- rowSums(g1)  # total weight citing others
   
   #  reciprocity; note if g1in == 0 reciprocity will be NA
-  res <- res %>% rbind(data.frame(recp = recp, in_cite = g1in, recp_in = recp/in_cite, year = yr,
-                                  BaraId = node.id$id, stringsAsFactors = FALSE))  
-}
+  res <- res %>% rbind(data.frame(recp = recp, in_cite = in_cite, recp_in = recp/in_cite, year = yr,
+                                  BaraId = node.id$id, stringsAsFactors = FALSE))
+  }
 
 save(res, file = 'reciprocity.RData')
 
