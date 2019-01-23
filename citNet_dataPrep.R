@@ -53,6 +53,9 @@ library(dplyr)
 library(igraph)
 B <- get(load('Barabasi_cite.RData')) %>% select(id, doi)
 d <- get(load('doiYear.RData'))
+
+#  some authors might not appear in the author cit network
+allAut <- B %>% group_by(id) %>% summarise() %>% mutate(id = as.integer(id))  
 paperId_doi <- read.table('paperId_doi.txt', stringsAsFactors = FALSE) %>% 
   setNames(c('paperId', 'doi'))
 
@@ -84,7 +87,7 @@ comm <- cluster_fast_greedy(autcitNet, merges = TRUE, modularity = TRUE,
 
 id_module = data.frame(id = as.integer(node.id$id) + 1, 
                        module = comm$membership, stringsAsFactors = FALSE) %>% 
-  right_join(allAut, by = c('id' = 'BaraId')) %>% 
+  right_join(allAut, by = 'id') %>% 
   select(id, module) %>% 
   replace(., is.na(.), 0)  #  authors not included belong to comm 0
 
