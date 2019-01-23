@@ -84,12 +84,10 @@ save(aut_year, file = 'aut_year.RData')
 #  Author - No. of citations - year
 library(dplyr)
 library(tidyr)
-load('Barabasi_cite.RData')
-load('doiYear.RData')
+B0 <- get(load('Barabasi_cite.RData')) %>% select(c('doi', 'id'))
+d0 <- get(load('doiYear.RData')) %>% select(c('doi', 'year'))
 cit <- read.csv('citationBara.csv', stringsAsFactors = FALSE)
 
-B0 <- Barabasi_cite %>% select(c('doi', 'id'))
-d0 <- doiYear %>% select(c('doi', 'year'))
 cit1 <- cit %>% full_join(d0, by = c('citing_doi' = 'doi')) %>% 
   full_join(d0, by = c('cited_doi' = 'doi'))
 colnames(cit1) <- c("citing_doi", "cited_doi", "year_citing", "year_cited")
