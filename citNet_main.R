@@ -105,6 +105,7 @@ for(year in c(1978: 2017)){
   colnames(citations_tmp) <- c('BaraId', 'pap_cits', 'year')
   citations <- rbind(citations, citations_tmp)
 }
+citations$BaraId <- as.integer(citations$BaraId)
 
 #  make sure every active author year there is data for No. of citations
 aut <- get(load('aut_info.RData')) %>% group_by(BaraId) %>% 
