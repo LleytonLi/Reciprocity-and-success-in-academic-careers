@@ -179,8 +179,11 @@ for(yr in 1978:2017){
   d0 <- d[d$year <= yr, ]  
   doi_tmp <- unique(c(cit$citing_doi, cit$cited_doi))
   doi0 <- d0$doi %>% intersect(B$doi) %>% intersect(doi_tmp)
-  B0 <- B %>% filter(doi %in% doi0)
+  
   cit0 <- cit %>% filter(citing_doi %in% doi0, cited_doi %in% doi0)
+  doi1 <- unique(c(cit0$citing_doi, cit0$cited_doi))
+  B0 <- B %>% filter(doi %in% doi0, doi %in% doi1)
+  
   
   #  reorder author id
   allnode <- sort(unique(B0$id))
@@ -206,7 +209,7 @@ for(yr in 1978:2017){
   #  reciprocity; note if g1in == 0 reciprocity will be NA
   res <- res %>% rbind(data.frame(recp = recp, in_cite = in_cite, recp_in = recp/in_cite, year = yr,
                                   BaraId = node.id$id, stringsAsFactors = FALSE))
-  }
+}
 
 save(res, file = 'reciprocity.RData')
 
