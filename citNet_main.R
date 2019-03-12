@@ -165,8 +165,8 @@ ay <- get(load('aut_year.RData'))
 #  citations convert paperId to doi
 cit <- read.table('paper_cit.dat', stringsAsFactors = FALSE) #  read in citations for either original or null model output
 cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>% 
-  left_join(paperId_doi, by = c('citing_paperId' = 'paperId')) %>% 
-  left_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
+  right_join(paperId_doi, by = c('citing_paperId' = 'paperId')) %>% 
+  right_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
   select(doi.x, doi.y) %>% setNames(c('citing_doi', 'cited_doi'))
 
 #  compute annual reciprocity for each active author
