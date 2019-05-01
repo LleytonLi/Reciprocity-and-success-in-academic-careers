@@ -99,7 +99,7 @@ tmp1 <- d0 %>%  full_join(B0, by = 'doi') %>%
 
 #  citaion - year
 citations <- NULL
-for(year in c(1978: 2017)){
+for(year in c(1950: 2009)){
   citations_tmp <- tmp1 %>% select(id, year_citing) %>% group_by(id) %>% filter(year_citing <= year) %>% 
     summarise(cits = n()) %>% select(id, cits) %>% mutate(year = year)
   colnames(citations_tmp) <- c('BaraId', 'pap_cits', 'year')
@@ -125,7 +125,7 @@ save(citations, file = 'citations.RData')
 #  =======================  #
 #  citation network at author-author level
 library(dplyr)
-yearBegin <- 1978
+yearBegin <- 1950
 aut = get(load('aut_info.RData')) %>% 
   mutate(lastYear = careerLength + firstYear - 1)
 ay = get(load('aut_year.RData'))
@@ -134,7 +134,7 @@ B = get(load('Barabasi_cite.RData')) %>% select(id, doi)
 d = get(load('doiYear.RData'))
 cit = read.csv('citationBara.csv', stringsAsFactors = FALSE)
 
-for(yr in yearBegin:2017){
+for(yr in yearBegin:2009){
   print(yr)
   auths1 <- aut[aut$firstYear <= yr & aut$lastYear >= yr, 'BaraId']
   d0 <- d %>% filter(year <= yr)  
@@ -156,14 +156,15 @@ library(dplyr)
 library(igraph)
 library(Matrix)
 d <- get(load('doiYear.RData'))
-B <- get(load('Barabasi_cite.RData')) %>% select(id, doi)
+B <- get(load('Barabasi_cite.RData')) %>% select(id, doi) %>% 
+  mutate(id = as.integer(id))
 paperId_doi <- read.table('paperId_doi.txt', stringsAsFactors = FALSE) %>% 
   setNames(c('paperId', 'doi'))
 aut <- get(load('aut_info.RData')) %>% mutate(lastYear = firstYear + careerLength - 1)
 ay <- get(load('aut_year.RData'))
 
 #  citations convert paperId to doi
-cit <- read.table('paper_cit.dat', stringsAsFactors = FALSE) #  read in citations for either original or null model output
+cit <- read.table('Citations_null_model_3_.out', stringsAsFactors = FALSE) #  read in citations for either original or null model output
 cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>% 
   right_join(paperId_doi, by = c('citing_paperId' = 'paperId')) %>% 
   right_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
@@ -171,7 +172,7 @@ cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>%
 
 #  compute annual reciprocity for each active author
 res <- NULL
-for(yr in 1978:2017){
+for(yr in 1950:2009){
   print(yr)
   
   #  select authors still active this year; and paper doi
@@ -182,7 +183,8 @@ for(yr in 1978:2017){
   
   cit0 <- cit %>% filter(citing_doi %in% doi0, cited_doi %in% doi0)
   doi1 <- unique(c(cit0$citing_doi, cit0$cited_doi))
-  B0 <- B %>% filter(doi %in% doi0, doi %in% doi1)
+  B0 <- B %>% filter(id %in% auths1, doi %in% doi0, doi %in% doi1)
+  cit0 <- cit %>% filter(citing_doi %in% B0$doi, cited_doi %in% B0$doi)
   
   
   #  reorder author id
@@ -211,6 +213,6 @@ for(yr in 1978:2017){
                                   BaraId = node.id$id, stringsAsFactors = FALSE))
 }
 
-save(res, file = 'reciprocity.RData')
+save(res, file = 'reciprocity_nm.RData')
 
 
