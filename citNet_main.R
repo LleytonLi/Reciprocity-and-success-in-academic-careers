@@ -149,6 +149,8 @@ for(yr in yearBegin:2009){
 }
 
 
+
+
 #  ===========  #
 #  Reciprocity  #
 #  ===========  #
@@ -164,7 +166,7 @@ aut <- get(load('aut_info.RData')) %>% mutate(lastYear = firstYear + careerLengt
 ay <- get(load('aut_year.RData'))
 
 #  citations convert paperId to doi
-cit <- read.table('Citations_null_model_3_.out', stringsAsFactors = FALSE) #  read in citations for either original or null model output
+cit <- read.table('paper_cit.dat', stringsAsFactors = FALSE) #  read in citations for either original or null model output
 cit <- cit %>% setNames(c('citing_paperId', 'cited_paperId')) %>% 
   right_join(paperId_doi, by = c('citing_paperId' = 'paperId')) %>% 
   right_join(paperId_doi, by = c('cited_paperId' = 'paperId')) %>% 
@@ -213,6 +215,6 @@ for(yr in 1950:2009){
                                   BaraId = node.id$id, stringsAsFactors = FALSE))
 }
 
-save(res, file = 'reciprocity_nm.RData')
+save(res, file = 'reciprocity.RData')
 
 
